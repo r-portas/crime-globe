@@ -30,8 +30,12 @@ export default {
      */
     drawScene() {
       const cube = new three.BoxGeometry(1, 1, 1);
+      cube.x = 0;
+      cube.y = 0;
+      cube.z = 0;
+
       const material = new three.MeshBasicMaterial({
-        color: 0xff0000,
+        color: 0x223355,
       });
 
       const mesh = new three.Mesh(cube, material);
@@ -51,6 +55,9 @@ export default {
 
     // Setup resizing
     window.addEventListener('resize', () => {
+      this.camera.aspect = container.offsetWidth / container.offsetHeight;
+      this.camera.updateProjectionMatrix();
+
       this.renderer.setSize(container.offsetWidth, container.offsetHeight);
     }, false);
 
@@ -60,10 +67,14 @@ export default {
     this.camera = new three.PerspectiveCamera(45,
       container.offsetWidth / container.offsetHeight,
       1,
-      4000,
+      1000,
     );
 
     this.camera.position.z = 5;
+    this.camera.position.x = 5;
+    this.camera.position.y = 5;
+    this.camera.lookAt(new three.Vector3(0, 0, 0));
+
     this.scene.add(this.camera);
 
     this.drawScene();
