@@ -21,10 +21,32 @@ export default {
       camera: null,
 
       globe: null,
+      globeGeometry: null,
+      globeTexture: null,
+
+      // The light representing the sun
+      sun: null,
+
+      clock: null,
     };
   },
 
   methods: {
+
+    drawGlobe() {
+      this.globeGeometry = new three.SphereGeometry(5, 32, 32);
+      this.globeGeometry.x = 0;
+      this.globeGeometry.y = 0;
+      this.globeGeometry.z = 0;
+
+      this.globeTexture = new three.MeshStandardMaterial({
+        color: 0x223355,
+      });
+
+      this.globe = new three.Mesh(this.globeGeometry, this.globeTexture);
+      this.scene.add(this.globe);
+    },
+
     /**
      * Draw elements into the scene
      */
@@ -34,12 +56,36 @@ export default {
       cube.y = 0;
       cube.z = 0;
 
-      const material = new three.MeshBasicMaterial({
+      const material = new three.MeshStandardMaterial({
         color: 0x223355,
       });
 
       const mesh = new three.Mesh(cube, material);
       this.scene.add(mesh);
+    },
+
+    drawSun() {
+      // Create a light
+      this.sun = new three.DirectionalLight(0xffffff, 4);
+      this.sun.shadow = 1;
+
+      this.sun.position.x = 0;
+      this.sun.position.y = 10;
+      this.sun.position.z = 100;
+
+      this.sun.lookAt(new three.Vector3(0, 0, 0));
+      this.scene.add(this.sun);
+    },
+
+    run() {
+      this.renderer.render(this.scene, this.camera);
+      const time = this.clock.getElapsedTime();
+
+      this.sun.position.x = 100 * Math.sin(time);
+      this.sun.position.z = 100 * Math.cos(time);
+      console.log(Math.sin(time));
+
+      requestAnimationFrame(this.run);
     },
   },
 
@@ -70,16 +116,21 @@ export default {
       1000,
     );
 
-    this.camera.position.z = 5;
-    this.camera.position.x = 5;
-    this.camera.position.y = 5;
+    this.camera.position.z = 10;
+    this.camera.position.x = 10;
+    this.camera.position.y = 10;
     this.camera.lookAt(new three.Vector3(0, 0, 0));
 
     this.scene.add(this.camera);
 
-    this.drawScene();
+    // this.drawScene();
+    this.drawGlobe();
+    this.drawSun();
 
     this.renderer.render(this.scene, this.camera);
+
+    this.clock = new three.Clock();
+    this.run();
   },
 };
 </script>
