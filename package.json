@@ -11,6 +11,7 @@
     "lint": "eslint --ext .js,.vue src"
   },
   "dependencies": {
+    "orbit-controls-es6": "^1.0.8",
     "three": "^0.85.2",
     "vue": "^2.2.6"
   },

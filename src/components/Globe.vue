@@ -6,6 +6,7 @@
 
 <script>
 import * as three from 'three';
+import OrbitControls from 'orbit-controls-es6';
 
 export default {
   name: 'globe',
@@ -19,6 +20,7 @@ export default {
 
       // The main camera
       camera: null,
+      pointLight: null,
 
       globe: null,
       globeGeometry: null,
@@ -40,34 +42,27 @@ export default {
       this.globeGeometry.z = 0;
 
       this.globeTexture = new three.MeshStandardMaterial({
-        color: 0x223355,
+        color: 0x1C6BA0,
       });
+
+      const loader = new three.TextureLoader();
+
+      this.globeTexture.map = loader.load('./static/earthmap8k.jpg');
+
+      this.globeTexture.bumpMap = loader.load('./static/elev_bump_8k.jpg');
+      this.globeTexture.bumpScale = 0.2;
+
+      this.globeTexture.roughnessMap = loader.load('./static/water_8k.jpg');
+      // this.globeTexture.specular = new three.Color('grey');
+      this.globeTexture.metalness = 0;
 
       this.globe = new three.Mesh(this.globeGeometry, this.globeTexture);
       this.scene.add(this.globe);
     },
 
-    /**
-     * Draw elements into the scene
-     */
-    drawScene() {
-      const cube = new three.BoxGeometry(1, 1, 1);
-      cube.x = 0;
-      cube.y = 0;
-      cube.z = 0;
-
-      const material = new three.MeshStandardMaterial({
-        color: 0x223355,
-      });
-
-      const mesh = new three.Mesh(cube, material);
-      this.scene.add(mesh);
-    },
-
     drawSun() {
       // Create a light
-      this.sun = new three.DirectionalLight(0xffffff, 4);
-      this.sun.shadow = 1;
+      this.sun = new three.DirectionalLight(0xffffff, 2);
 
       this.sun.position.x = 0;
       this.sun.position.y = 10;
@@ -77,13 +72,33 @@ export default {
       this.scene.add(this.sun);
     },
 
+    drawCamera(container) {
+      // Create the camera
+      this.camera = new three.PerspectiveCamera(45,
+        container.offsetWidth / container.offsetHeight,
+        1,
+        1000,
+      );
+
+
+      // Create the ambient light
+      this.pointLight = new three.PointLight(0xaaaaaa, 3, 100);
+      this.pointLight.position.set(5, 3, 5);
+      // this.camera.add(this.pointLight);
+      this.scene.add(this.pointLight);
+
+      this.camera.position.set(10, 10, 10);
+      this.camera.lookAt(new three.Vector3(0, 0, 0));
+
+      this.scene.add(this.camera);
+    },
+
     run() {
       this.renderer.render(this.scene, this.camera);
       const time = this.clock.getElapsedTime();
 
       this.sun.position.x = 100 * Math.sin(time);
       this.sun.position.z = 100 * Math.cos(time);
-      console.log(Math.sin(time));
 
       requestAnimationFrame(this.run);
     },
@@ -109,23 +124,17 @@ export default {
 
     this.scene = new three.Scene();
 
-    // Create the camera
-    this.camera = new three.PerspectiveCamera(45,
-      container.offsetWidth / container.offsetHeight,
-      1,
-      1000,
-    );
-
-    this.camera.position.z = 10;
-    this.camera.position.x = 10;
-    this.camera.position.y = 10;
-    this.camera.lookAt(new three.Vector3(0, 0, 0));
-
-    this.scene.add(this.camera);
-
     // this.drawScene();
+    this.drawCamera(container);
     this.drawGlobe();
     this.drawSun();
+
+    // Setup the mouse movement
+    const controls = new OrbitControls(this.camera, this.renderer.domElement);
+    controls.addEventListener('change', () => {
+      this.renderer.render(this.scene, this.camera);
+      this.pointLight.position.copy(this.camera.position);
+    });
 
     this.renderer.render(this.scene, this.camera);
 
