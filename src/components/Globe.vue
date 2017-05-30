@@ -6,7 +6,9 @@
 
 <script>
 import * as three from 'three';
+import { SpriteText2D } from 'three-text2d';
 import OrbitControls from 'orbit-controls-es6';
+import crimes from '../crimes.json';
 
 export default {
   name: 'globe',
@@ -25,6 +27,7 @@ export default {
       globe: null,
       globeGeometry: null,
       globeTexture: null,
+      globeRadius: 5000,
 
       // The light representing the sun
       sun: null,
@@ -35,8 +38,37 @@ export default {
 
   methods: {
 
+    /**
+     * Converts to the sphere coordinates
+     * @param coords - A (lat, lng) array
+     */
+    convertToSphere(coords) {
+      const phi = (90 - coords[0]) * (Math.PI / 180);
+      const theta = (coords[1] + 180) * (Math.PI / 180);
+      const offset = 300;
+
+      const x = -((this.globeRadius + offset) * Math.sin(phi) * Math.cos(theta));
+      const y = ((this.globeRadius + offset) * Math.cos(phi));
+      const z = ((this.globeRadius + offset) * Math.sin(phi) * Math.sin(theta));
+
+      return new three.Vector3(x, y, z);
+    },
+
+    drawLabels() {
+      for (let i = 0; i < crimes.length; i += 1) {
+        const crime = crimes[i];
+        const worldCoords = this.convertToSphere(crime.coords);
+        const sprite = new SpriteText2D(crime.city_name, { font: '200px Arial', antialias: true });
+        sprite.position.x = worldCoords.x;
+        sprite.position.y = worldCoords.y;
+        sprite.position.z = worldCoords.z;
+
+        this.scene.add(sprite);
+      }
+    },
+
     drawGlobe() {
-      this.globeGeometry = new three.SphereGeometry(5, 32, 32);
+      this.globeGeometry = new three.SphereGeometry(this.globeRadius, 32, 32);
       this.globeGeometry.x = 0;
       this.globeGeometry.y = 0;
       this.globeGeometry.z = 0;
@@ -66,7 +98,7 @@ export default {
 
       this.sun.position.x = 0;
       this.sun.position.y = 10;
-      this.sun.position.z = 100;
+      this.sun.position.z = 100000;
 
       this.sun.lookAt(new three.Vector3(0, 0, 0));
       this.scene.add(this.sun);
@@ -77,17 +109,17 @@ export default {
       this.camera = new three.PerspectiveCamera(45,
         container.offsetWidth / container.offsetHeight,
         1,
-        1000,
+        100000,
       );
 
 
       // Create the ambient light
       this.pointLight = new three.PointLight(0xaaaaaa, 3, 100);
-      this.pointLight.position.set(5, 3, 5);
+      this.pointLight.position.set(5000, 3000, 5000);
       // this.camera.add(this.pointLight);
       this.scene.add(this.pointLight);
 
-      this.camera.position.set(10, 10, 10);
+      this.camera.position.set(10000, 10000, 10000);
       this.camera.lookAt(new three.Vector3(0, 0, 0));
 
       this.scene.add(this.camera);
@@ -128,6 +160,8 @@ export default {
     this.drawCamera(container);
     this.drawGlobe();
     this.drawSun();
+
+    this.drawLabels();
 
     // Setup the mouse movement
     const controls = new OrbitControls(this.camera, this.renderer.domElement);

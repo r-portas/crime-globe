@@ -13,6 +13,7 @@
   "dependencies": {
     "orbit-controls-es6": "^1.0.8",
     "three": "^0.85.2",
+    "three-text2d": "^0.3.4",
     "vue": "^2.2.6"
   },
   "devDependencies": {
