@@ -29,6 +29,8 @@ export default {
       globeTexture: null,
       globeRadius: 5000,
 
+      crimeSpots: [],
+
       // The light representing the sun
       sun: null,
 
@@ -45,13 +47,41 @@ export default {
     convertToSphere(coords) {
       const phi = (90 - coords[0]) * (Math.PI / 180);
       const theta = (coords[1] + 180) * (Math.PI / 180);
-      const offset = 300;
+      const offset = 0;
 
       const x = -((this.globeRadius + offset) * Math.sin(phi) * Math.cos(theta));
       const y = ((this.globeRadius + offset) * Math.cos(phi));
       const z = ((this.globeRadius + offset) * Math.sin(phi) * Math.sin(theta));
 
       return new three.Vector3(x, y, z);
+    },
+
+    drawAllCrime() {
+      for (let i = 0; i < crimes.length; i += 1) {
+        const crime = crimes[i];
+        const crimeSpot = this.drawCrimeSpot(crime);
+        this.crimeSpots.push(crimeSpot);
+      }
+    },
+
+    drawCrimeSpot(crime) {
+      const worldCoords = this.convertToSphere(crime.coords);
+
+      const radius = crime.crime_rate * 2;
+
+      const spotGeom = new three.SphereGeometry(radius, 10, 10);
+
+      const color = new three.Color(crime.crime_rate / 87, 0, 0);
+      const spotMaterial = new three.MeshBasicMaterial({ color });
+      const spot = new three.Mesh(spotGeom, spotMaterial);
+
+      this.scene.add(spot);
+
+      spot.position.x = worldCoords.x;
+      spot.position.y = worldCoords.y;
+      spot.position.z = worldCoords.z;
+
+      return spot;
     },
 
     drawLabels() {
@@ -161,7 +191,8 @@ export default {
     this.drawGlobe();
     this.drawSun();
 
-    this.drawLabels();
+    // this.drawLabels();
+    this.drawAllCrime();
 
     // Setup the mouse movement
     const controls = new OrbitControls(this.camera, this.renderer.domElement);
